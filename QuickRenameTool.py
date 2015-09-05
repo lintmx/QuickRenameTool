@@ -39,19 +39,19 @@ def CheckName(Num,FileTagName,RightFileName,FileLength,FileExtensionName):
 		return False
 
 def Rename(FilePath,FileTagName,FileExtensionName,FileLength):
-	FileNameList = os.listdir(FilePath)								#生成目录下文件列表
-	RightFileName = []												#储存符合要求的文件名
-	ErrorFileName = []												#储存不符合要求的文件名
-	FileSerialNum = 0;												#文件数字编号
+	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
+	RightFileName = []							#储存符合要求的文件名
+	ErrorFileName = []							#储存不符合要求的文件名
+	FileSerialNum = 0;							#文件数字编号
 	
 	#对文件列表进行分类
 	for EachFile in FileNameList:
 		if CheckFile(FileTagName + '-' + '[0-9]' * FileLength + '\.' + FileExtensionName + "$",EachFile):
-			RightFileName.append(EachFile)							#符合要求文件
+			RightFileName.append(EachFile)		#符合要求文件
 		elif CheckFile('[\w]+\.' + FileExtensionName + "$",EachFile):
-			ErrorFileName.append(EachFile)							#不符合要求文件
+			ErrorFileName.append(EachFile)		#不符合要求文件
 		else:
-			pass													#其他文件
+			pass								#其他文件
 	
 	#对不符合要求文件进行重命名
 	for EachFile in ErrorFileName:
@@ -64,18 +64,18 @@ def Rename(FilePath,FileTagName,FileExtensionName,FileLength):
 		
 		os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewFileName))
 		FileSerialNum += 1
-		
+	
 	print("OK!")
 	time.sleep(2)
 
 def main():
 	#TODO:参数
-	FilePath = os.getcwd()											#文件所在目录
-	FileTagName = 'Wallpaper'										#文件统一前缀
-	FileExtensionName = 'jpg'										#文件拓展名
-	FileLength = 3													#序号长度
+	FilePath = os.getcwd()						#文件所在目录
+	FileTagName = 'Wallpaper'					#文件统一前缀
+	FileExtensionName = 'jpg'					#文件拓展名
+	FileLength = 3								#序号长度
 	
 	Rename(FilePath,FileTagName,FileExtensionName,FileLength)		
-	
+
 if __name__ == '__main__':
 	main()
