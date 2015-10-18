@@ -11,6 +11,7 @@
 import os
 import re
 import time
+import random
 
 #生成 NumLength 位前面带 0 的数字字符串
 def GenerateNum(Num,NumLength):
@@ -42,7 +43,7 @@ def Rename(FilePath,FileTagName,FileExtensionName,FileLength):
 	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
 	RightFileName = []							#储存符合要求的文件名
 	ErrorFileName = []							#储存不符合要求的文件名
-	FileSerialNum = 0;							#文件数字编号
+	FileSerialNum = 0							#文件数字编号
 	
 	#对文件列表进行分类
 	for EachFile in FileNameList:
@@ -68,6 +69,34 @@ def Rename(FilePath,FileTagName,FileExtensionName,FileLength):
 	print("OK!")
 	time.sleep(2)
 
+def RandomName(FilePath,FileTagName,FileExtensionName,FileLength):
+	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
+	
+	for EachFile in FileNameList:
+		if CheckFile(FileTagName + '-' + '[0-9]' * FileLength + '\.' + FileExtensionName + "$",EachFile): 
+			SerialNum = random.randint(0,1000000)	
+			NewFileName = str(SerialNum) + "." + FileExtensionName
+			os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewFileName))
+			SerialNum += 1
+
+def SelectMode(FilePath,FileTagName,FileExtensionName,FileLength):
+	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
+	RandomMode = 1								#随机模式开关
+	
+	for EachFile in FileNameList:
+		if CheckFile(FileTagName + '-' + '[0-9]' * FileLength + '\.' + FileExtensionName + "$",EachFile):
+			pass
+		elif CheckFile('[\w]+\.' + FileExtensionName + "$",EachFile):
+			RandomMode = 0
+			break
+		else:
+			pass								#其他文件
+	
+	if RandomMode == 1:
+		RandomName(FilePath,FileTagName,FileExtensionName,FileLength)
+	
+	Rename(FilePath,FileTagName,FileExtensionName,FileLength)
+
 def main():
 	#TODO:参数
 	FilePath = os.getcwd()						#文件所在目录
@@ -75,7 +104,7 @@ def main():
 	FileExtensionName = 'jpg'					#文件拓展名
 	FileLength = 3								#序号长度
 	
-	Rename(FilePath,FileTagName,FileExtensionName,FileLength)		
+	SelectMode(FilePath,FileTagName,FileExtensionName,FileLength)	
 
 if __name__ == '__main__':
 	main()
