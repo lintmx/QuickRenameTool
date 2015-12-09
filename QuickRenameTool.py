@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#coding:utf-8
 
 # Author:https://github.com/lintmx
 #
@@ -10,101 +11,84 @@
 
 import os
 import re
-import time
+import sys
 import random
+import argparse
 
-#生成 NumLength 位前面带 0 的数字字符串
-def GenerateNum(Num,NumLength):
+def CheckFile(FileName,FileType,Regular = ''):
+	FileName,FileExt = os.path.splitext(FileName)
+	
+	if FileExt[1:] not in FileType:
+		return False
+		
+	if Regular != '':
+		MatchFile = re.match(Regular,FileName)
+		if MatchFile is not None:
+			return False
+		
+	return True
+
+def GenSeqStr(Num,Length):
 	Num = str(Num)
 	
-	while len(Num) < NumLength:
-		Num = "0" + Num
-	
+	while len(Num) < Length:
+		Num = '0' + Num
+		
 	return Num
-
-#检查文件名是否符合正则表达式
-def CheckFile(Regular,File):
-	MatchFile = re.search(Regular,File)
-	if MatchFile is not None:
-		return True
-	else:
-		return False
-
-#检查文件名是否已经使用
-def CheckName(Num,FileTagName,RightFileName,FileLength,FileExtensionName):
-	SerialNum = GenerateNum(Num,FileLength)
-	FileName = FileTagName + "-" + SerialNum + "." + FileExtensionName
-	if FileName in RightFileName:
-		return True
-	else:
-		return False
-
-def Rename(FilePath,FileTagName,FileExtensionName,FileLength):
-	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
-	RightFileName = []							#储存符合要求的文件名
-	ErrorFileName = []							#储存不符合要求的文件名
-	FileSerialNum = 0							#文件数字编号
 	
-	#对文件列表进行分类
-	for EachFile in FileNameList:
-		if CheckFile(FileTagName + '-' + '[0-9]' * FileLength + '\.' + FileExtensionName + "$",EachFile):
-			RightFileName.append(EachFile)		#符合要求文件
-		elif CheckFile('[\w]+\.' + FileExtensionName + "$",EachFile):
-			ErrorFileName.append(EachFile)		#不符合要求文件
-		else:
-			pass								#其他文件
+def QuickRename(FilePath,FileTagName,FileType,SeqLength,isRandom):
+	FileList = os.listdir(FilePath)
+	WorkList = []
+	CheckList = []
 	
-	#对不符合要求文件进行重命名
-	for EachFile in ErrorFileName:
-		#检查文件名
-		while CheckName(FileSerialNum,FileTagName,RightFileName,FileLength,FileExtensionName):
-			FileSerialNum += 1
+	if isRandom:
+		RandomNumList = random.sample(range(len(FileList)),len(FileList))
 		
-		SerialNum = GenerateNum(FileSerialNum,FileLength)
-		NewFileName = FileTagName + "-" + SerialNum + "." + FileExtensionName
+		for EachFile,RandomNum in zip(FileList,RandomNumList):
+			if CheckFile(EachFile,FileType):
+				RandomFileName = 'This-is-a-meanningless-string-' + str(RandomNum) + os.path.splitext(EachFile)[1]
+				WorkList.append(RandomFileName)
+				os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,RandomFileName))
+	else:
+		for EachFile in FileList:
+			if CheckFile(EachFile,FileType,'^' + FileTagName + '-[0-9]{' + str(SeqLength) + '}$'):
+				WorkList.append(EachFile)
+			else:
+				CheckList.append(os.path.splitext(EachFile)[0])
+				
+	SeqNum = 0
+	
+	for EachFile in WorkList:
+		while True:
+			NewName = FileTagName + '-' + GenSeqStr(SeqNum,SeqLength)
+			SeqNum += 1
+			if NewName not in CheckList:
+				break
 		
-		os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewFileName))
-		FileSerialNum += 1
-	
-	print("OK!")
-	time.sleep(2)
-
-def RandomName(FilePath,FileTagName,FileExtensionName,FileLength):
-	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
-	
-	for EachFile in FileNameList:
-		if CheckFile(FileTagName + '-' + '[0-9]' * FileLength + '\.' + FileExtensionName + "$",EachFile): 
-			SerialNum = random.randint(0,1000000)	
-			NewFileName = str(SerialNum) + "." + FileExtensionName
-			os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewFileName))
-			SerialNum += 1
-
-def SelectMode(FilePath,FileTagName,FileExtensionName,FileLength):
-	FileNameList = os.listdir(FilePath)			#生成目录下文件列表
-	RandomMode = 1								#随机模式开关
-	
-	for EachFile in FileNameList:
-		if CheckFile(FileTagName + '-' + '[0-9]' * FileLength + '\.' + FileExtensionName + "$",EachFile):
-			pass
-		elif CheckFile('[\w]+\.' + FileExtensionName + "$",EachFile):
-			RandomMode = 0
-			break
-		else:
-			pass								#其他文件
-	
-	if RandomMode == 1:
-		RandomName(FilePath,FileTagName,FileExtensionName,FileLength)
-	
-	Rename(FilePath,FileTagName,FileExtensionName,FileLength)
+		os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewName + os.path.splitext(EachFile)[1]))	
 
 def main():
-	#TODO:参数
-	FilePath = os.getcwd()						#文件所在目录
-	FileTagName = 'Wallpaper'					#文件统一前缀
-	FileExtensionName = 'jpg'					#文件拓展名
-	FileLength = 3								#序号长度
+	if len(sys.argv) == 1:
+		sys.argv.append('--help')
+	parser = argparse.ArgumentParser(description = 'A tool to quickly rename.')
+	parser.add_argument('path',help = 'File Directory.')
+	parser.add_argument('-t','--tag',help = 'Filename Identifier.',default = 'Wallpaper')
+	parser.add_argument('-f','--filetype',help = 'Filename Extension.',nargs = '*',default = ['jpg','png'])
+	parser.add_argument('-l','--length',help = 'The length of Sequence.',type = int,default = '3')
+	parser.add_argument('-r','--random',help = 'Whether random file.',action = 'store_true')
+	args = parser.parse_args()
 	
-	SelectMode(FilePath,FileTagName,FileExtensionName,FileLength)	
+	# Check Directory
+	if not os.path.exists(args.path):
+		raise ValueError('Directory does not exist.')
+	
+	# Check Sequence
+	if args.length <= 0:
+		raise ValueError('The length of sequence must greater than zero.')
+	elif args.length < len(str(len(os.listdir(args.path)))):
+		raise ValueError('The length of sequence must greater than file.')
+		
+	QuickRename(args.path,args.tag,args.filetype,args.length,args.random)
 
 if __name__ == '__main__':
 	main()
