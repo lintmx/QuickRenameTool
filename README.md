@@ -23,7 +23,7 @@ Use option `-r` or `--random` to random all file name.
 
 Update
 ------
-v1.0:
+v1.0.0:
 	
 	Implement basic functions.
 	
