@@ -18,7 +18,7 @@ import argparse
 def CheckFile(FileName,FileType,Regular = ''):
 	FileName,FileExt = os.path.splitext(FileName)
 	
-	if FileExt[1:] not in FileType:
+	if FileExt[1:].lower() not in FileType:
 		return False
 		
 	if Regular != '':
@@ -65,7 +65,7 @@ def QuickRename(FilePath,FileTagName,FileType,SeqLength,isRandom):
 			if NewName not in CheckList:
 				break
 		
-		os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewName + os.path.splitext(EachFile)[1]))	
+		os.rename(os.path.join(FilePath,EachFile),os.path.join(FilePath,NewName + os.path.splitext(EachFile)[1].lower()))	
 
 def main():
 	if len(sys.argv) == 1:
