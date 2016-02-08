@@ -30,6 +30,7 @@ v1.0.0:
 	Implement basic functions.
 	
 v1.1.0:
+
 	Generate automatic wallpaper changer script.
 
 License
